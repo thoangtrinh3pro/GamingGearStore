@@ -1,0 +1,310 @@
+﻿@using GamingGear.Web.Helpers
+@inject GamingGear.Infrastructure.Data.ApplicationDbContext DbContext
+@model GamingGear.Web.Models.CheckoutViewModel
+
+@{
+    ViewData["Title"] = "Thanh toán đơn hàng - Ambition Karma Shop";
+
+    decimal subtotal = Model.CartItems?.Sum(x => x.TotalPrice) ?? 0;
+    decimal discountAmount = Context.Session.GetObjectFromJson<decimal>("DiscountSession");
+    decimal shippingFee = (subtotal >= 1000000 || subtotal == 0) ? 0 : 49000;
+    decimal finalTotal = (subtotal - discountAmount) + shippingFee;
+    if (finalTotal < 0) finalTotal = 0;
+
+    var promotions = DbContext.Promotions.ToList();
+}
+
+<style>
+    body {
+        background-color: #f8fafc;
+        color: #1e293b;
+    }
+
+    .checkout-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 1.5rem;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+    }
+
+    .voucher-badge {
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+        .voucher-badge:hover {
+            transform: translateY(-2px);
+            background-color: #eff6ff !important;
+            border-color: #3b82f6 !important;
+        }
+</style>
+
+<div class="container my-4">
+    <div class="d-flex align-items-center mb-4">
+        <div class="bg-danger rounded-pill me-2" style="width: 6px; height: 26px;"></div>
+        <h2 class="fw-bold text-dark m-0">⚡ Hoàn Tất Đơn Hàng</h2>
+    </div>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm mb-4" role="alert">
+            <strong>⚠️ Vui lòng kiểm tra lại thông tin:</strong>
+            <div asp-validation-summary="All" class="text-danger small mt-1"></div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm mb-4" role="alert">
+            <strong>⚠️ Thông báo:</strong> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm mb-4" role="alert">
+            <strong>🎉 Thành công:</strong> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- ⚡ FORM ĐẶT HÀNG RIÊNG BIỆT (CHỈ BỌC CỘT TRÁI) -->
+    <form asp-controller="Cart" asp-action="Checkout" method="post" id="checkoutForm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="isBuyNow" value="@ViewBag.IsBuyNow.ToString().ToLower()" />
+    </form>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <!-- Đưa các input vào trong form chính qua thuộc tính form="checkoutForm" -->
+            <div class="p-4 checkout-card mb-4">
+                <h5 class="fw-bold text-dark mb-3">📍 Thông tin nhận hàng</h5>
+
+                <div class="alert alert-primary bg-primary bg-opacity-10 border-0 text-dark rounded-4 p-3 mb-3 small">
+                    🎁 <b>Ưu đãi đặc biệt:</b> Miễn phí giao hàng cho khách hàng tại khu vực Khánh Hòa - Nha Trang!
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="FullName" class="form-label fw-semibold small text-muted">Họ và tên người nhận</label>
+                    <input asp-for="FullName" form="checkoutForm" class="form-control rounded-pill px-3" required />
+                    <span asp-validation-for="FullName" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="PhoneNumber" class="form-label fw-semibold small text-muted">Số điện thoại</label>
+                    <input asp-for="PhoneNumber" form="checkoutForm" class="form-control rounded-pill px-3" required />
+                    <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-0">
+                    <label asp-for="Address" class="form-label fw-semibold small text-muted">Địa chỉ giao hàng chi tiết</label>
+                    <textarea asp-for="Address" form="checkoutForm" class="form-control rounded-4 p-3" rows="3" required></textarea>
+                    <span asp-validation-for="Address" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="p-4 checkout-card">
+                <h5 class="fw-bold text-dark mb-3">💳 Phương thức thanh toán</h5>
+
+                <div class="form-check mb-3 p-3 border rounded-4 bg-light">
+                    <input class="form-check-input ms-1" type="radio" name="paymentMethod" id="paymentCOD" value="COD" form="checkoutForm" checked>
+                    <label class="form-check-label fw-bold text-dark ms-2" for="paymentCOD">
+                        💵 Thanh toán khi nhận hàng (COD)
+                    </label>
+                    <div class="text-muted small ms-4 ps-1">Nhận hàng kiểm tra xong thanh toán tiền mặt cho shipper.</div>
+                </div>
+
+                <div class="form-check p-3 border rounded-4 bg-light">
+                    <input class="form-check-input ms-1" type="radio" name="paymentMethod" id="paymentVNPAY" value="VNPAY" form="checkoutForm">
+                    <label class="form-check-label fw-bold text-dark ms-2" for="paymentVNPAY">
+                        📱 Chuyển khoản quét mã QR (VietQR / Ngân hàng)
+                    </label>
+                    <div class="text-muted small ms-4 ps-1">Hiển thị mã QR tự động để quét thanh toán nhanh chóng.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="p-4 checkout-card sticky-top" style="top: 20px;">
+                <h5 class="fw-bold text-dark mb-3">📦 Tóm tắt đơn hàng</h5>
+
+                <div class="table-responsive mb-3" style="max-height: 200px; overflow-y: auto;">
+                    <table class="table table-sm align-middle mb-0">
+                        <tbody>
+                            @if (Model.CartItems != null)
+                            {
+                                @foreach (var item in Model.CartItems)
+                                {
+                                    <tr>
+                                        <td style="width: 50%;">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "https://via.placeholder.com/40" : item.ImageUrl)" class="rounded border" style="width: 40px; height: 40px; object-fit: contain;" />
+                                                <span class="small fw-semibold text-dark text-truncate" style="max-width: 140px;" title="@item.ProductName">@item.ProductName</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-center small text-muted">x@(item.Quantity)</td>
+                                        <td class="text-end small fw-bold text-danger">@item.TotalPrice.ToString("N0") đ</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <hr class="text-muted">
+
+                <!-- 🌟 KHU VỰC CHỌN VOUCHER ĐỘNG TỪ DATABASE -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold small text-dark mb-2">🎟️ Voucher ưu đãi có sẵn:</label>
+
+                    @if (Context.Session.GetString("CouponCodeSession") != null)
+                    {
+                        <div class="d-flex justify-content-between align-items-center bg-success bg-opacity-10 border border-success-subtle p-2 rounded-3 mb-2">
+                            <span class="small text-success fw-bold">✅ Đang dùng: @Context.Session.GetString("CouponCodeSession")</span>
+
+                            <form asp-controller="Cart" asp-action="RemoveCoupon" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger border-0 py-0 px-1 fw-bold" title="Hủy mã">❌</button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-column gap-2 mb-2">
+                            @if (promotions != null && promotions.Any())
+                            {
+                                @foreach (var promo in promotions)
+                                {
+                                    <div onclick="applySpecificCoupon('@promo.Code')" class="voucher-badge border rounded-3 p-2 bg-light d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="badge bg-danger text-white fw-bold">@promo.Code</span>
+                                            <span class="small text-muted ms-1">Giảm @promo.DiscountAmount.ToString("N0") đ</span>
+                                        </div>
+                                        <span class="small text-primary fw-bold">Dùng ngay →</span>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="text-muted small italic">Hiện chưa có mã giảm giá nào.</div>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div class="d-flex justify-content-between mb-2 text-secondary">
+                    <span>Tạm tính tiền hàng:</span>
+                    <span class="fw-bold text-dark">@subtotal.ToString("N0") đ</span>
+                </div>
+
+                @if (discountAmount > 0)
+                {
+                    <div class="d-flex justify-content-between mb-2 text-success">
+                        <span>Giảm giá (Mã: @Context.Session.GetString("CouponCodeSession")):</span>
+                        <span class="fw-bold">-@discountAmount.ToString("N0") đ</span>
+                    </div>
+                }
+
+                <div class="d-flex justify-content-between mb-3 pb-3 border-bottom text-secondary align-items-center">
+                    <span>Phí vận chuyển:</span>
+                    @if (shippingFee == 0)
+                    {
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle px-2 py-1 fw-bold">
+                            🚚 Miễn phí giao hàng (>1tr)
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="fw-bold text-dark">@shippingFee.ToString("N0") đ</span>
+                    }
+                </div>
+
+                <div class="d-flex justify-content-between mb-4 fs-5">
+                    <span class="fw-bold text-dark">Tổng thanh toán:</span>
+                    <span class="fw-bold text-danger fs-4">@finalTotal.ToString("N0") đ</span>
+                </div>
+
+                <button type="submit" form="checkoutForm" class="btn btn-danger w-100 py-3 fw-bold rounded-pill shadow-sm mb-3">
+                    ⚡ ĐẶT HÀNG NGAY (@finalTotal.ToString("N0") đ)
+                </button>
+
+                <a asp-controller="Cart" asp-action="Index" class="btn btn-outline-dark w-100 py-2 fw-bold rounded-pill">
+                    ← Quay lại giỏ hàng
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        function applySpecificCoupon(code) {
+            // Lưu dữ liệu vào localStorage trước khi apply voucher
+            saveFormToLocalStorage();
+
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/Cart/ApplyCoupon';
+
+            var inputToken = document.createElement('input');
+            inputToken.type = 'hidden';
+            inputToken.name = '__RequestVerificationToken';
+            inputToken.value = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            form.appendChild(inputToken);
+
+            var inputCode = document.createElement('input');
+            inputCode.type = 'hidden';
+            inputCode.name = 'couponCode';
+            inputCode.value = code;
+            form.appendChild(inputCode);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function saveFormToLocalStorage() {
+            localStorage.setItem('chk_FullName', document.getElementById('FullName')?.value || '');
+            localStorage.setItem('chk_PhoneNumber', document.getElementById('PhoneNumber')?.value || '');
+            localStorage.setItem('chk_Address', document.getElementById('Address')?.value || '');
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // Khôi phục dữ liệu từ localStorage
+            if (localStorage.getItem('chk_FullName')) {
+                const el = document.getElementById('FullName');
+                if (el && !el.value) el.value = localStorage.getItem('chk_FullName');
+            }
+            if (localStorage.getItem('chk_PhoneNumber')) {
+                const el = document.getElementById('PhoneNumber');
+                if (el && !el.value) el.value = localStorage.getItem('chk_PhoneNumber');
+            }
+            if (localStorage.getItem('chk_Address')) {
+                const el = document.getElementById('Address');
+                if (el && !el.value) el.value = localStorage.getItem('chk_Address');
+            }
+
+            // Lắng nghe sự kiện input để tự động lưu liên tục
+            ['FullName', 'PhoneNumber', 'Address'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', saveFormToLocalStorage);
+                }
+            });
+
+            // Xóa localStorage khi submit đặt hàng thành công
+            const checkoutForm = document.getElementById('checkoutForm');
+            if (checkoutForm) {
+                checkoutForm.addEventListener('submit', function() {
+                    localStorage.removeItem('chk_FullName');
+                    localStorage.removeItem('chk_PhoneNumber');
+                    localStorage.removeItem('chk_Address');
+                });
+            }
+        });
+    </script>
+}

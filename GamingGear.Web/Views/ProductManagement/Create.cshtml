@@ -1,0 +1,84 @@
+﻿@model GamingGear.Domain.Entities.Product
+
+@{
+    ViewData["Title"] = "Thêm sản phẩm mới - Admin";
+    var categories = ViewBag.Categories as IEnumerable<GamingGear.Domain.Entities.Category>;
+}
+
+<div class="container my-4" style="max-width: 700px;">
+    <div class="card border-0 shadow-sm rounded-4 p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+            <div>
+                <span class="badge bg-success px-3 py-2 mb-2 fw-bold text-uppercase">⚡ KHO HÀNG</span>
+                <h3 class="fw-bold text-dark mb-0">Thêm Sản Phẩm Mới</h3>
+            </div>
+            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4 fw-bold">
+                ← Quay lại
+            </a>
+        </div>
+
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+            <!-- Tên sản phẩm -->
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label fw-semibold">Tên sản phẩm</label>
+                <input asp-for="Name" class="form-control rounded-pill px-3 py-2" placeholder="Ví dụ: Bàn phím cơ Custom..." required />
+                <span asp-validation-for="Name" class="text-danger small"></span>
+            </div>
+
+            <div class="row">
+                <!-- Giá bán -->
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Price" class="form-label fw-semibold">Giá bán (VNĐ)</label>
+                    <input asp-for="Price" type="number" class="form-control rounded-pill px-3 py-2" placeholder="3490000" required />
+                    <span asp-validation-for="Price" class="text-danger small"></span>
+                </div>
+
+                <!-- Số lượng tồn kho -->
+                <div class="col-md-6 mb-3">
+                    <label asp-for="StockQuantity" class="form-label fw-semibold">Số lượng tồn kho</label>
+                    <input asp-for="StockQuantity" type="number" class="form-control rounded-pill px-3 py-2" placeholder="15" required />
+                    <span asp-validation-for="StockQuantity" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <!-- Danh mục sản phẩm -->
+            <div class="mb-3">
+                <label asp-for="CategoryId" class="form-label fw-semibold">Danh mục</label>
+                <select asp-for="CategoryId" class="form-select rounded-pill px-3 py-2" required>
+                    <option value="">-- Chọn danh mục sản phẩm --</option>
+                    @if (categories != null)
+                    {
+                        foreach (var cat in categories)
+                        {
+                            <option value="@cat.Id">@cat.Name</option>
+                        }
+                    }
+                </select>
+                <span asp-validation-for="CategoryId" class="text-danger small"></span>
+            </div>
+
+            <!-- Link hình ảnh -->
+            <div class="mb-4">
+                <label asp-for="ImageUrl" class="form-label fw-semibold">Link hình ảnh (URL)</label>
+                <input asp-for="ImageUrl" class="form-control rounded-pill px-3 py-2" placeholder="https://images.unsplash.com/..." required />
+                <span asp-validation-for="ImageUrl" class="text-danger small"></span>
+            </div>
+
+            <!-- Mô tả sản phẩm -->
+            <div class="mb-4">
+                <label asp-for="Description" class="form-label fw-semibold">Mô tả chi tiết</label>
+                <textarea asp-for="Description" class="form-control rounded-4 p-3" rows="4" placeholder="Nhập mô tả thông số kỹ thuật..."></textarea>
+                <span asp-validation-for="Description" class="text-danger small"></span>
+            </div>
+
+            <!-- Nút submit -->
+            <div class="d-grid">
+                <button type="submit" class="btn btn-success py-3 fw-bold rounded-pill shadow-sm">
+                    💾 Lưu Sản Phẩm Vào Kho
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,202 @@
+﻿@model GamingGear.Domain.Entities.Order
+@using GamingGear.Domain.Entities
+@{
+    ViewData["Title"] = $"Chi tiết đơn hàng #{Model.Id} - Ambition Karma Shop";
+    var orderDetails = ViewBag.OrderDetails as List<GamingGear.Domain.Entities.OrderDetail>;
+    var products = ViewBag.Products as Dictionary<int, GamingGear.Domain.Entities.Product>;
+    var reviewedProductIds = ViewBag.ReviewedProductIds as List<int> ?? new List<int>();
+    var userReviews = ViewBag.UserReviews as Dictionary<int, Feedback> ?? new Dictionary<int, Feedback>();
+    bool isCompleted = Model.Status == "Completed" || Model.Status == "Hoàn tất";
+}
+
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center">
+            <div class="bg-primary rounded-pill me-2" style="width: 6px; height: 26px;"></div>
+            <h2 class="fw-bold text-dark m-0">Chi Tiết Đơn Hàng #@Model.Id</h2>
+        </div>
+        <a asp-controller="Order" asp-action="Lookup" class="btn btn-outline-secondary fw-bold rounded-pill px-4">
+            ← Tra cứu đơn hàng khác
+        </a>
+    </div>
+
+    <!-- Hiển thị thông báo TempData -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm mb-4" role="alert">
+            <strong>Thông báo:</strong> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm mb-4" role="alert">
+            <strong>Thành công:</strong> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="p-4 bg-white border rounded-4 shadow-sm mb-4">
+                <h5 class="fw-bold text-dark mb-3">📦 Trạng Thái & Thông Tin Giao Hàng</h5>
+                <div class="mb-3">
+                    <span class="text-muted">Trạng thái đơn hàng:</span>
+                    @switch (Model.Status)
+                    {
+                        case "Pending":
+                            <span class="badge bg-warning text-dark px-3 py-2 ms-2 fw-semibold rounded-pill">Chờ xử lý</span>
+                            break;
+                        case "Processing":
+                            <span class="badge bg-info text-dark px-3 py-2 ms-2 fw-semibold rounded-pill">Đang chuẩn bị</span>
+                            break;
+                        case "Shipped":
+                            <span class="badge bg-primary text-white px-3 py-2 ms-2 fw-semibold rounded-pill">Đang giao hàng</span>
+                            break;
+                        case "Completed":
+                        case "Hoàn tất":
+                            <span class="badge bg-success text-white px-3 py-2 ms-2 fw-semibold rounded-pill">Hoàn tất</span>
+                            break;
+                        case "Cancelled":
+                            <span class="badge bg-secondary text-white px-3 py-2 ms-2 fw-semibold rounded-pill">Đã hủy</span>
+                            break;
+                        default:
+                            <span class="badge bg-light text-dark px-3 py-2 ms-2 fw-semibold rounded-pill">@Model.Status</span>
+                            break;
+                    }
+                </div>
+                <p class="mb-2"><strong>Họ tên người nhận:</strong> @Model.FullName</p>
+                <p class="mb-2"><strong>Số điện thoại:</strong> @Model.PhoneNumber</p>
+                <p class="mb-2"><strong>Địa chỉ giao hàng:</strong> @Model.ShippingAddress</p>
+                <p class="mb-0"><strong>Ngày đặt hàng:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm:ss")</p>
+
+                @if (!string.IsNullOrEmpty(Model.CancelReason))
+                {
+                    <div class="mt-3 p-3 bg-light border rounded-3">
+                        <span class="text-danger fw-bold">Lý do hủy đơn:</span> @Model.CancelReason
+                    </div>
+                }
+            </div>
+
+            <!-- KHU VỰC HỦY ĐƠN HÀNG CÓ ĐIỀU KIỆN -->
+            <div class="p-4 bg-white border rounded-4 shadow-sm">
+                <h5 class="fw-bold text-dark mb-3">⚙️ Thao Tác Đơn Hàng</h5>
+                @if (Model.Status == "Pending")
+                {
+                    <form asp-action="CancelOrder" method="post" class="p-3 border rounded-3 bg-light">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark">Lý do hủy đơn hàng:</label>
+                            <textarea name="cancelReason" class="form-control" rows="3" placeholder="Nhập lý do bạn muốn hủy đơn..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm" onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?');">
+                            Xác nhận hủy đơn
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <div class="alert alert-warning mb-0 rounded-3">
+                        Đơn hàng đã chuyển sang trạng thái xử lý hoặc đang vận chuyển, không thể tự hủy trực tuyến.<br />
+                        <strong>Nếu cần hỗ trợ gấp, hãy liên hệ với chúng tôi qua Zalo hoặc SĐT: 0373900143.</strong>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="p-4 bg-white border rounded-4 shadow-sm">
+                <h5 class="fw-bold text-dark mb-3">🛒 Danh Sách Sản Phẩm Đã Mua</h5>
+                <div class="list-group list-group-flush mb-3">
+                    @if (orderDetails != null && orderDetails.Any())
+                    {
+                        @foreach (var detail in orderDetails)
+                        {
+                            var hasProduct = products != null && products.ContainsKey(detail.ProductId);
+                            string productName = hasProduct ? products[detail.ProductId].Name : $"Sản phẩm #{detail.ProductId}";
+                            string imgUrl = hasProduct ? products[detail.ProductId].ImageUrl : "https://via.placeholder.com/45";
+
+                            bool isReviewed = reviewedProductIds.Contains(detail.ProductId);
+                            Feedback? review = isReviewed && userReviews.ContainsKey(detail.ProductId) ? userReviews[detail.ProductId] : null;
+
+                            <div class="list-group-item px-0 py-3 bg-transparent border-bottom">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="@imgUrl" class="rounded border" style="width: 45px; height: 45px; object-fit: contain;" alt="@productName" />
+                                        <div>
+                                            <h6 class="fw-bold text-dark mb-1 text-truncate" style="max-width: 150px;" title="@productName">@productName</h6>
+                                            <span class="small text-muted">SL: @detail.Quantity x @detail.UnitPrice.ToString("N0") đ</span>
+                                        </div>
+                                    </div>
+                                    <span class="fw-bold text-danger">@((detail.Quantity * detail.UnitPrice).ToString("N0")) đ</span>
+                                </div>
+
+                                <!-- 🌟 XỬ LÝ ĐÁNH GIÁ CHUẨN XÁC KHÔNG BỊ SPAM -->
+                                @if (isCompleted)
+                                {
+                                    <div class="mt-2 text-end">
+                                        @if (isReviewed && review != null)
+                                        {
+                                            <!-- Hiển thị khi ĐÃ ĐÁNH GIÁ -->
+                                            <div class="p-2 bg-success bg-opacity-10 border border-success-subtle rounded-3 text-start small">
+                                                <span class="text-success fw-bold">✅ Đã đánh giá:</span>
+                                                <span class="text-warning">
+                                                    @for (int i = 0; i < review.Rating; i++)
+                                                    {
+                                                        <text>⭐</text>
+                                                    }
+                                                </span>
+                                                <p class="mb-0 text-muted fst-italic">"@review.Comment"</p>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <!-- Nút mở form đánh giá -->
+                                            <button class="btn btn-sm btn-outline-primary rounded-pill fw-bold px-3 py-1 small" type="button" data-bs-toggle="collapse" data-bs-target="#reviewForm-@detail.ProductId">
+                                                ⭐ Đánh giá sản phẩm
+                                            </button>
+
+                                            <div class="collapse mt-2 text-start" id="reviewForm-@detail.ProductId">
+                                                <form asp-action="SubmitReview" method="post" class="p-3 bg-light rounded-3 border">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="orderId" value="@Model.Id" />
+                                                    <input type="hidden" name="productId" value="@detail.ProductId" />
+
+                                                    <div class="mb-2">
+                                                        <label class="form-label small fw-semibold text-dark mb-1">Mức độ hài lòng:</label>
+                                                        <select name="rating" class="form-select form-select-sm rounded-pill">
+                                                            <option value="5">⭐⭐⭐⭐⭐ (5/5 - Tuyệt vời)</option>
+                                                            <option value="4">⭐⭐⭐⭐ (4/5 - Hài lòng)</option>
+                                                            <option value="3">⭐⭐⭐ (3/5 - Bình thường)</option>
+                                                            <option value="2">⭐⭐ (2/5 - Tạm được)</option>
+                                                            <option value="1">⭐ (1/5 - Không hài lòng)</option>
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="mb-2">
+                                                        <textarea name="comment" class="form-control form-control-sm rounded-3" rows="2" placeholder="Nhập cảm nhận của bạn về sản phẩm này..." required></textarea>
+                                                    </div>
+
+                                                    <button type="submit" class="btn btn-sm btn-primary rounded-pill w-100 fw-bold">Gửi đánh giá</button>
+                                                </form>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-3">Không tìm thấy sản phẩm trong đơn hàng này.</div>
+                    }
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top fs-5">
+                    <span class="fw-bold text-dark">Tổng tiền:</span>
+                    <span class="fw-bold text-danger fs-3">@Model.TotalAmount.ToString("N0") đ</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

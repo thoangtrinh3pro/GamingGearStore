@@ -1,0 +1,191 @@
+﻿@using GamingGear.Web.Helpers
+@model IEnumerable<GamingGear.Web.Models.CartItem>
+
+@{
+    ViewData["Title"] = "Giỏ hàng của bạn - Ambition Karma Shop";
+    var totalAmount = ViewBag.TotalAmount != null ? (decimal)ViewBag.TotalAmount : 0;
+
+    decimal subtotal = totalAmount;
+    decimal discountAmount = Context.Session.GetObjectFromJson<decimal>("DiscountSession");
+    decimal shippingFee = (subtotal >= 1000000 || subtotal == 0) ? 0 : 49000;
+    decimal finalTotal = (subtotal - discountAmount) + shippingFee;
+    if (finalTotal < 0) finalTotal = 0;
+}
+
+<style>
+    body {
+        background-color: #f8fafc;
+        color: #1e293b;
+    }
+
+    .cart-container {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 1.5rem;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+    }
+
+    .summary-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 1.5rem;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+    }
+</style>
+
+<div class="container my-4">
+    <div class="d-flex align-items-center mb-4">
+        <div class="bg-primary rounded-pill me-2" style="width: 6px; height: 26px;"></div>
+        <h2 class="fw-bold text-dark m-0">🛒 Giỏ Hàng Của Bạn</h2>
+    </div>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm mb-4" role="alert">
+            <strong>⚠️ Thông báo:</strong> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm mb-4" role="alert">
+            <strong>🎉 Thành công:</strong> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="p-4 cart-container">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light text-uppercase fs-7 text-muted">
+                                <tr>
+                                    <th style="width: 45%;">Sản phẩm</th>
+                                    <th style="width: 15%;">Đơn giá</th>
+                                    <th style="width: 20%;" class="text-center">Số lượng</th>
+                                    <th style="width: 15%;">Thành tiền</th>
+                                    <th style="width: 5%;" class="text-center">Xóa</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-3">
+                                                <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "https://via.placeholder.com/60" : item.ImageUrl)"
+                                                     alt="@item.ProductName" class="rounded border" style="width: 55px; height: 55px; object-fit: contain; background: #f8fafc;" />
+                                                <div>
+                                                    <h6 class="fw-bold text-dark mb-0" style="font-size: 0.95rem;">@item.ProductName</h6>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="fw-semibold text-secondary">@item.Price.ToString("N0") đ</td>
+                                        <td class="text-center">
+                                            <form asp-controller="Cart" asp-action="UpdateQuantity" method="post" class="d-inline-flex align-items-center justify-content-center gap-1">
+                                                <input type="hidden" name="productId" value="@item.ProductId" />
+                                                <input type="number" name="quantity" value="@item.Quantity" min="1" max="99"
+                                                       class="form-control form-control-sm text-center fw-bold" style="width: 60px;"
+                                                       onchange="this.form.submit()" />
+                                            </form>
+                                        </td>
+                                        <td class="fw-bold text-danger">@item.TotalPrice.ToString("N0") đ</td>
+                                        <td class="text-center">
+                                            <a asp-controller="Cart" asp-action="Remove" asp-route-id="@item.ProductId"
+                                               class="text-danger p-2 rounded-circle hover-bg-light" title="Xóa sản phẩm">
+                                                🗑️
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="p-4 summary-card">
+                    <h5 class="fw-bold text-dark mb-4">Tổng Đơn Hàng</h5>
+
+                    <!-- Ô NHẬP MÃ GIẢM GIÁ -->
+                    <div class="mb-3">
+                        @if (Context.Session.GetString("CouponCodeSession") != null)
+                        {
+                            <div class="d-flex justify-content-between align-items-center bg-success bg-opacity-10 border border-success-subtle p-2 rounded-3 mb-2">
+                                <span class="small text-success fw-bold">🏷️ Mã: @Context.Session.GetString("CouponCodeSession")</span>
+                                <form asp-controller="Cart" asp-action="RemoveCoupon" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger border-0 py-0 px-1" title="Xóa mã">❌</button>
+                                </form>
+                            </div>
+                        }
+                        else
+                        {
+                            <form asp-controller="Cart" asp-action="ApplyCoupon" method="post" class="input-group input-group-sm">
+                                @Html.AntiForgeryToken()
+                                <input type="text" name="couponCode" class="form-control rounded-start-pill px-3" placeholder="Nhập mã (VD: GAMING2026)" required />
+                                <button class="btn btn-outline-dark rounded-end-pill px-3 fw-bold" type="submit">Áp dụng</button>
+                            </form>
+                        }
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2 text-secondary">
+                        <span>Tạm tính:</span>
+                        <span class="fw-bold text-dark">@subtotal.ToString("N0") đ</span>
+                    </div>
+
+                    @if (discountAmount > 0)
+                    {
+                        <div class="d-flex justify-content-between mb-2 text-success">
+                            <span>Giảm giá:</span>
+                            <span class="fw-bold">-@discountAmount.ToString("N0") đ</span>
+                        </div>
+                    }
+
+                    <div class="d-flex justify-content-between mb-3 pb-3 border-bottom text-secondary align-items-center">
+                        <span>Phí vận chuyển:</span>
+                        @if (shippingFee == 0)
+                        {
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle px-2 py-1 fw-bold">
+                                🚚 Miễn phí giao hàng (>1tr)
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="fw-bold text-dark">@shippingFee.ToString("N0") đ</span>
+                        }
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-4 fs-5">
+                        <span class="fw-bold text-dark">Tổng cộng:</span>
+                        <span class="fw-bold text-danger fs-4">@finalTotal.ToString("N0") đ</span>
+                    </div>
+
+                    <a asp-controller="Cart" asp-action="Checkout" class="btn btn-primary w-100 py-3 fw-bold rounded-pill shadow-sm mb-3">
+                        💳 TIẾN HÀNH THANH TOÁN
+                    </a>
+
+                    <a asp-controller="Product" asp-action="Index" class="btn btn-outline-dark w-100 py-2 fw-bold rounded-pill">
+                        ← Tiếp tục mua sắm
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5 cart-container">
+            <div class="display-4 mb-3">🛒</div>
+            <h4 class="fw-bold text-dark mb-2">Giỏ hàng của bạn đang trống</h4>
+            <p class="text-muted mb-4">Hãy khám phá ngay các siêu phẩm gaming gear đỉnh cao của chúng tôi nhé!</p>
+            <a asp-controller="Product" asp-action="Index" class="btn btn-warning px-5 py-3 fw-bold rounded-pill text-dark shadow-sm">
+                🎮 Khám phá sản phẩm ngay
+            </a>
+        </div>
+    }
+</div>

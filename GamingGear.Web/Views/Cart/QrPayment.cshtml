@@ -1,0 +1,70 @@
+﻿@model GamingGear.Domain.Entities.Order
+
+@{
+    ViewData["Title"] = "Thanh toán Chuyển khoản QR - Ambition Karma Shop";
+    string bankCode = ViewBag.BankCode ?? "TCB";
+    string accountNumber = ViewBag.AccountNumber ?? "1488111111";
+    string accountName = ViewBag.AccountName ?? "TRINH QUANG THOANG";
+
+    // Tạo link QR tự động qua VietQR API
+    string qrUrl = $"https://img.vietqr.io/image/{bankCode}-{accountNumber}-compact2.png?amount={Model.TotalAmount}&addInfo=THANH TOAN DON HANG {Model.Id}&accountName={accountName}";
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="p-4 p-md-5 bg-white border rounded-4 shadow-sm text-center">
+                <div class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold mb-3">
+                    ⏳ ĐANG CHỜ THANH TOÁN
+                </div>
+
+                <h3 class="fw-bold text-dark mb-1">Quét Mã QR Chuyển Khoản</h3>
+                <p class="text-muted small mb-4">Sử dụng ứng dụng Ngân hàng hoặc Ví điện tử để quét mã</p>
+
+                <!-- Ảnh QR -->
+                <div class="p-3 border rounded-4 bg-light d-inline-block mb-4 shadow-sm">
+                    <img src="@qrUrl" alt="Mã QR Thanh Toán" class="img-fluid rounded-3" style="max-width: 280px;" />
+                </div>
+
+                <!-- Thông tin chuyển khoản -->
+                <div class="text-start bg-light p-3 rounded-3 mb-4 small border">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary">Ngân hàng:</span>
+                        <span class="fw-bold text-dark">@bankCode</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary">Số tài khoản:</span>
+                        <span class="fw-bold text-primary">@accountNumber</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary">Chủ tài khoản:</span>
+                        <span class="fw-bold text-dark">@accountName</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary">Số tiền:</span>
+                        <span class="fw-bold text-danger">@Model.TotalAmount.ToString("N0") VNĐ</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-secondary">Nội dung chuyển khoản:</span>
+                        <span class="fw-bold text-dark">THANH TOAN DON HANG @Model.Id</span>
+                    </div>
+                </div>
+
+                <!-- NÚT THAO TÁC CỦA KHÁCH HÀNG -->
+                <div class="d-flex flex-column gap-2">
+                    <a asp-controller="Order" asp-action="Details" asp-route-id="@Model.Id" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 shadow-sm">
+                        ✅ Tôi đã chuyển khoản xong
+                    </a>
+
+                    <!-- FORM ĐỔI PHƯƠNG THỨC THANH TOÁN SANG COD -->
+                    <form asp-controller="Cart" asp-action="SwitchToCod" method="post">
+                        <input type="hidden" name="orderId" value="@Model.Id" />
+                        <button type="submit" class="btn btn-outline-secondary btn-lg w-100 rounded-pill fw-bold py-2 small">
+                            📦 Đổi sang Thanh toán khi nhận hàng (COD)
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

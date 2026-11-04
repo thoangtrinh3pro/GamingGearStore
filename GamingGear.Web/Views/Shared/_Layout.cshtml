@@ -1,0 +1,166 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Ambition Karma Shop</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/GamingGear.Web.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <!-- ⚡ THANH THÔNG BÁO MỪNG SINH NHẬT (CHỈ HIỆN DUY NHẤT TẠI TRANG CHỦ) -->
+    @if (ViewContext.RouteData.Values["controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["action"]?.ToString() == "Index")
+    {
+        <div style="background: #2563eb; color: white; text-align: center; padding: 6px; font-size: 13px; font-weight: bold; letter-spacing: 0.5px;">
+            🎉 TƯNG BỪNG KHUYẾN MÃI ƯU ĐÃI NGẬP TRÀN MỪNG SINH NHẬT 1 TUỔI - CHÀO MỪNG BẠN ĐẾN VỚI AMBITION KARMA SHOP! 🎂
+        </div>
+    }
+
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                <!-- Tên thương hiệu -->
+                <a class="navbar-brand fw-bold text-warning" asp-area="" asp-controller="Home" asp-action="Index">⚡ Ambition Karma Shop</a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <!-- Menu chính -->
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light" asp-area="" asp-controller="Product" asp-action="Index">Sản phẩm</a>
+                        </li>
+
+                        <!-- 🔒 LỊCH SỬ ĐƠN HÀNG DÀNH CHO USER KHÔNG PHẢI ADMIN -->
+                        @if (User.Identity != null && User.Identity.IsAuthenticated && !User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-light fw-bold" asp-controller="Order" asp-action="Index">📋 Lịch sử đơn hàng</a>
+                            </li>
+                        }
+
+                        <!-- 🌟 NÚT QUẢN LÝ HỖ TRỢ & QUẢN LÝ VOUCHER DÀNH CHO ADMIN -->
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-warning fw-bold position-relative ms-2" asp-controller="Support" asp-action="AdminIndex">
+                                    💬 Quản Lý Hỗ Trợ
+                                    <span id="support-pending-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 0.7rem;">
+                                        0
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-warning fw-bold ms-2" asp-controller="Admin" asp-action="Promotions">
+                                    🏷️ Quản Lý Voucher
+                                </a>
+                            </li>
+                        }
+                    </ul>
+
+                    <!-- Khu vực Tìm kiếm, Giỏ hàng & Đăng nhập nằm ở góc phải Navbar -->
+                    <div class="d-flex align-items-center gap-2 mt-2 mt-sm-0">
+                        <!-- Form Tìm kiếm sản phẩm -->
+                        <form asp-controller="Home" asp-action="Search" method="get" class="d-flex">
+                            <input class="form-control form-control-sm me-2 rounded-pill" type="search" name="query" placeholder="Tìm bàn phím, chuột..." aria-label="Search" required>
+                            <button class="btn btn-outline-warning btn-sm rounded-pill px-3" type="submit">🔍</button>
+                        </form>
+
+                        <!-- PHÂN QUYỀN HIỂN THỊ GIỎ HÀNG (CHỈ HIỆN KHI KHÔNG PHẢI ADMIN) -->
+                        @if (User.Identity == null || !User.Identity.IsAuthenticated || !User.IsInRole("Admin"))
+                        {
+                            <a asp-controller="Cart" asp-action="Index" class="btn btn-warning btn-sm fw-bold text-dark rounded-pill px-3 text-nowrap shadow-sm">
+                                🛒 Giỏ hàng
+                            </a>
+                        }
+
+                        <!-- XỬ LÝ HIỂN THỊ ĐĂNG NHẬP / QUẢN TRỊ / ĐĂNG XUẤT -->
+                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                        {
+                            <!-- Nút Trang Quản Trị (Chỉ hiện khi tài khoản là Admin) -->
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a class="btn btn-outline-warning btn-sm rounded-pill fw-bold px-3 text-nowrap" asp-controller="Admin" asp-action="Index">
+                                    ⚡ Quản Trị
+                                </a>
+                            }
+
+                            <!-- Nút Đăng xuất -->
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill fw-bold px-3 text-nowrap">
+                                    🚪 Đăng xuất (@User.Identity.Name)
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <!-- Nút Đăng Ký và Đăng Nhập khi chưa đăng nhập -->
+                            <a class="btn btn-outline-warning btn-sm rounded-pill fw-bold px-3 text-nowrap" asp-controller="Account" asp-action="Register">
+                                📝 Đăng Ký
+                            </a>
+                            <a class="btn btn-primary btn-sm rounded-pill fw-bold px-3 text-nowrap" asp-controller="Account" asp-action="Login">
+                                🔐 Đăng Nhập
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <!-- Footer thông tin cá nhân và đồ án chuyên ngành -->
+    <footer class="border-top footer text-muted bg-light py-3 mt-auto">
+        <div class="container text-center">
+            &copy; 2026 - Ambition Karma Shop - <strong>Đồ án chuyên ngành IT</strong> | Email: <strong>thoangtrinh3@gmail.com</strong> | SĐT: <strong>0373900143</strong>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <!-- ⚡ SCRIPT TỰ ĐỘNG KIỂM TRA CÂU HỎI MỚI MỖI 10 GIÂY CHO ADMIN -->
+    @if (User.IsInRole("Admin"))
+    {
+        <script>
+            function checkPendingSupportMessages() {
+                fetch('/Support/GetPendingCount')
+                    .then(response => response.json())
+                    .then(data => {
+                        const badge = document.getElementById('support-pending-badge');
+                        if (badge) {
+                            if (data.count > 0) {
+                                badge.innerText = data.count;
+                                badge.classList.remove('d-none');
+                            } else {
+                                badge.classList.add('d-none');
+                            }
+                        }
+                    })
+                    .catch(err => console.error("Lỗi kiểm tra tin nhắn hỗ trợ:", err));
+            }
+
+            document.addEventListener("DOMContentLoaded", function () {
+                checkPendingSupportMessages();
+                setInterval(checkPendingSupportMessages, 10000);
+            });
+        </script>
+    }
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

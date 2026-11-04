@@ -1,0 +1,61 @@
+﻿@model IEnumerable<GamingGear.Domain.Entities.Order>
+
+@{
+    ViewData["Title"] = "Tra cứu đơn hàng - Ambition Karma Shop";
+    string searchTerm = ViewBag.SearchTerm as string;
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="p-4 bg-white border rounded-4 shadow-sm mb-4 text-center">
+                <h3 class="fw-bold text-dark mb-3">🔍 Tra Cứu Đơn Hàng</h3>
+                <p class="text-muted small mb-4">Nhập mã đơn hàng hoặc số điện thoại mua hàng để kiểm tra trạng thái đơn.</p>
+
+                <form asp-controller="Order" asp-action="Search" method="post" class="row g-2 justify-content-center">
+                    <div class="col-md-8">
+                        <input type="text" name="searchTerm" value="@searchTerm" class="form-control form-control-lg rounded-pill px-4" placeholder="Nhập mã đơn hoặc số điện thoại..." required />
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold rounded-pill shadow-sm">Tra cứu ngay</button>
+                    </div>
+                </form>
+            </div>
+
+            @if (Model != null)
+            {
+                if (Model.Any())
+                {
+                    <div class="p-4 bg-white border rounded-4 shadow-sm">
+                        <h5 class="fw-bold text-dark mb-3">Kết quả tra cứu cho: "@searchTerm"</h5>
+                        <div class="list-group">
+                            @foreach (var ord in Model)
+                            {
+                                <div class="list-group-item list-group-item-action p-3 rounded-3 mb-2 border shadow-sm">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="fw-bold text-primary mb-1">Đơn hàng #@ord.Id</h6>
+                                            <p class="small text-muted mb-1">Người nhận: <strong>@ord.FullName</strong> - SĐT: @ord.PhoneNumber</p>
+                                            <p class="small text-muted mb-0">Ngày đặt: @ord.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-warning text-dark px-3 py-2 mb-2 fw-bold">@ord.Status</span>
+                                            <br />
+                                            <a asp-controller="Order" asp-action="Details" asp-route-id="@ord.Id" class="btn btn-sm btn-outline-dark fw-bold rounded-pill px-3">Chi tiết →</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning text-center rounded-4 shadow-sm" role="alert">
+                        <strong>Không tìm thấy đơn hàng nào!</strong> Vui lòng kiểm tra lại thông tin bạn vừa nhập.
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>

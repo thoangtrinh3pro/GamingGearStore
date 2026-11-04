@@ -1,0 +1,96 @@
+﻿@{
+    ViewData["Title"] = "Trang Quản Trị - Ambition Karma Shop";
+}
+
+<style>
+    body {
+        background-color: #f8fafc;
+        color: #1e293b;
+    }
+
+    .admin-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 1.25rem;
+        transition: all 0.3s ease;
+        text-decoration: none !important;
+        display: block;
+        height: 100%;
+    }
+
+        .admin-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(15, 23, 42, 0.1);
+            border-color: #2563eb;
+        }
+
+    .admin-stat-icon {
+        width: 65px;
+        height: 65px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+    }
+</style>
+
+<div class="container my-5">
+    <!-- Header Admin -->
+    <div class="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom">
+        <div>
+            <span class="badge bg-danger px-3 py-2 mb-2 fw-bold text-uppercase tracking-wider">⚡ HỆ THỐNG QUẢN TRỊ</span>
+            <h2 class="fw-bold text-dark mb-0">Bảng Điều Khiển Admin</h2>
+        </div>
+        <div>
+            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-danger fw-bold rounded-pill px-4 py-2 shadow-sm">
+                    🚪 Đăng Xuất
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bố cục chính: 2 Card lớn chứa trọn vẹn mọi chức năng, loại bỏ sự trùng lặp -->
+    <div class="row g-4 justify-content-center mb-5">
+
+        <!-- Card 1: Quản lý Kho & Sản phẩm -->
+        <div class="col-md-5">
+            <a asp-controller="ProductManagement" asp-action="Index" class="admin-card p-4 p-lg-5 shadow-sm">
+                <div class="d-flex align-items-center gap-4">
+                    <div class="admin-stat-icon bg-primary bg-opacity-10 text-primary">
+                        📦
+                    </div>
+                    <div>
+                        <span class="text-muted small fw-bold text-uppercase d-block mb-1">Kho hàng & Tồn kho</span>
+                        <h3 class="fw-bold text-dark mb-2">Quản Lý Sản Phẩm</h3>
+                        <p class="text-secondary small mb-0">Thêm, sửa, xóa sản phẩm, cập nhật giá và số lượng tồn kho.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Card 2: Quản lý Đơn hàng (Đã sửa đúng tên AdminOrder) -->
+        <div class="col-md-5">
+            <a asp-controller="AdminOrder" asp-action="Index" class="admin-card p-4 p-lg-5 shadow-sm">
+                <div class="d-flex align-items-center gap-4">
+                    <div class="admin-stat-icon bg-warning bg-opacity-10 text-warning">
+                        📑
+                    </div>
+                    <div>
+                        <span class="text-muted small fw-bold text-uppercase d-block mb-1">Giao dịch khách hàng</span>
+                        <h3 class="fw-bold text-dark mb-2">Quản Lý Đơn Hàng</h3>
+                        <p class="text-secondary small mb-0">Xem danh sách đơn, duyệt trạng thái và đối soát thanh toán QR.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+    <!-- Khu vực phụ trợ: Quay về trang khách hàng -->
+    <div class="text-center">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary px-5 py-3 rounded-pill fw-bold shadow-sm">
+            🏠 Quay về Trang Chủ Khách Hàng
+        </a>
+    </div>
+</div>

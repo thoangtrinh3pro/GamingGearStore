@@ -1,0 +1,40 @@
+﻿@model GamingGear.Domain.Entities.Product
+
+@{
+    ViewData["Title"] = "Xóa sản phẩm - Admin";
+}
+
+<div class="container my-5" style="max-width: 600px;">
+    <div class="card border-0 shadow-sm rounded-4 p-4 border-top border-danger border-4">
+        <div class="text-center mb-4">
+            <span class="badge bg-danger px-3 py-2 mb-2 fw-bold text-uppercase">⚡ CẢNH BÁO XÓA DỮ LIỆU</span>
+            <h3 class="fw-bold text-dark">Bạn có chắc chắn muốn xóa sản phẩm này?</h3>
+            <p class="text-muted small">Hành động này sẽ loại bỏ hoàn toàn sản phẩm ra khỏi hệ thống kho hàng và không thể khôi phục lại.</p>
+        </div>
+
+        <div class="card bg-light border-0 rounded-3 p-3 mb-4">
+            <div class="row align-items-center">
+                <div class="col-4 text-center">
+                    <img src="@Model.ImageUrl" alt="@Model.Name" class="rounded-3 border object-fit-cover shadow-sm" style="width: 80px; height: 80px;" onerror="this.src='https://via.placeholder.com/80';" />
+                </div>
+                <div class="col-8">
+                    <h5 class="fw-bold text-dark mb-1">@Model.Name</h5>
+                    <p class="text-danger fw-bold mb-1">@Model.Price.ToString("N0") VNĐ</p>
+                    <span class="badge bg-secondary">Tồn kho: @Model.StockQuantity cái</span>
+                </div>
+            </div>
+        </div>
+
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="Id" />
+            <div class="d-flex gap-3">
+                <a asp-action="Index" class="btn btn-outline-secondary w-50 py-3 fw-bold rounded-pill">
+                    ← Hủy bỏ, quay lại
+                </a>
+                <button type="submit" class="btn btn-danger w-50 py-3 fw-bold rounded-pill shadow-sm">
+                    🗑️ Xác Nhận Xóa
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

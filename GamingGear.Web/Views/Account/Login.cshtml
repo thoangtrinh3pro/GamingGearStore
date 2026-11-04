@@ -1,0 +1,108 @@
+﻿@model GamingGear.Web.Models.LoginViewModel
+
+@{
+    ViewData["Title"] = "Đăng nhập - Ambition Karma Shop";
+    var returnUrl = ViewData["ReturnUrl"] as string;
+}
+
+<style>
+    body {
+        background-color: #f8fafc;
+        color: #1e293b;
+    }
+
+    .login-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 1.5rem;
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+    }
+
+    .btn-login {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        border: none;
+        box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        transition: all 0.3s ease;
+    }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+        }
+</style>
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="p-5 login-card">
+                <div class="text-center mb-4">
+                    <span class="badge bg-warning text-dark px-3 py-2 mb-2 fw-bold text-uppercase">⚡ HỆ THỐNG XÁC THỰC</span>
+                    <h3 class="fw-bold text-dark">Đăng Nhập Quản Trị</h3>
+                    <p class="text-muted small">Nhập tài khoản hoặc sử dụng phím tắt test nhanh bên dưới</p>
+                </div>
+
+                <form asp-controller="Account" asp-action="Login" asp-route-returnUrl="@returnUrl" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label fw-semibold">Email tài khoản</label>
+                        <input asp-for="Email" id="Email" class="form-control rounded-pill px-3 py-2" placeholder="thoangtrinh3@gmail.com" required />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label fw-semibold">Mật khẩu</label>
+                        <input asp-for="Password" id="Password" class="form-control rounded-pill px-3 py-2" type="password" placeholder="••••••••" required />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input asp-for="RememberMe" class="form-check-input" type="checkbox" />
+                        <label asp-for="RememberMe" class="form-check-label text-muted small">Ghi nhớ đăng nhập</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-login text-white w-100 py-3 fw-bold rounded-pill mb-3">
+                        🔐 ĐĂNG NHẬP
+                    </button>
+
+                    <!-- Dòng chữ dẫn sang trang đăng ký -->
+                    <div class="text-center mb-3">
+                        <span class="text-muted small">Bạn chưa có tài khoản?</span>
+                        <a asp-controller="Account" asp-action="Register" class="fw-bold text-primary text-decoration-none small"> Đăng ký ngay</a>
+                    </div>
+
+                    <!-- KHU VỰC PHÍM TẮT ĐĂNG NHẬP NHANH CHO DEV -->
+                    <div class="p-3 border border-warning rounded-4 bg-light text-center mb-3">
+                        <p class="small text-muted mb-2 fw-bold">⚡ PHÍM TẮT TEST NHANH (DEV)</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <button type="button" class="btn btn-sm btn-dark fw-bold rounded-pill px-3 shadow-sm" onclick="fillAdmin()">
+                                👑 Điền Admin
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary fw-bold rounded-pill px-3 shadow-sm" onclick="fillUser()">
+                                👤 Điền User
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <a asp-controller="Home" asp-action="Index" class="text-decoration-none text-muted small">← Quay lại trang chủ</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function fillAdmin() {
+            document.getElementById('Email').value = "thoangtrinh3@gmail.com";
+            document.getElementById('Password').value = "123456789";
+        }
+
+        function fillUser() {
+            document.getElementById('Email').value = "hn3508777@gmail.com";
+            document.getElementById('Password').value = "123456789";
+        }
+    </script>
+}

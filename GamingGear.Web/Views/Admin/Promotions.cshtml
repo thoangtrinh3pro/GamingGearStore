@@ -1,0 +1,116 @@
+﻿@model IEnumerable<GamingGear.Domain.Entities.Promotion>
+
+@{
+    ViewData["Title"] = "Quản lý Khuyến mãi & Voucher - Admin";
+}
+
+<div class="container my-4">
+    <div class="d-flex align-items-center mb-4">
+        <div class="bg-primary rounded-pill me-2" style="width: 6px; height: 26px;"></div>
+        <h2 class="fw-bold text-dark m-0">🏷️ Quản Lý Mã Khuyến Mãi & Voucher</h2>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm mb-4">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm mb-4">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- ➕ Form thêm mã giảm giá mới (Đã có Điều kiện & Thời hạn) -->
+    <div class="p-4 bg-white border rounded-4 shadow-sm mb-4">
+        <h5 class="fw-bold text-dark mb-3">➕ Thêm Mã Giảm Giá Mới</h5>
+        <form asp-action="CreatePromotion" method="post" class="row g-3">
+            @Html.AntiForgeryToken()
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted">Mã Voucher (VD: SALE50K)</label>
+                <input type="text" name="code" class="form-control rounded-pill px-3" placeholder="Nhập mã..." required />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted">Số tiền giảm (VNĐ)</label>
+                <input type="number" name="discountAmount" class="form-control rounded-pill px-3" step="1000" placeholder="VD: 50000" required />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted">Đơn tối thiểu (VNĐ)</label>
+                <input type="number" name="minOrderAmount" class="form-control rounded-pill px-3" step="1000" value="0" placeholder="0 nếu không yêu cầu" required />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted">Hạn sử dụng (Để trống nếu vô hạn)</label>
+                <input type="datetime-local" name="expiryDate" class="form-control rounded-pill px-3" />
+            </div>
+            <div class="col-12 text-end mt-3">
+                <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">⚡ Tạo Mã Giảm Giá</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 📋 Bảng danh sách mã hiện tại -->
+    <div class="p-4 bg-white border rounded-4 shadow-sm">
+        <h5 class="fw-bold text-dark mb-3">📋 Danh Sách Mã Đang Hoạt Động</h5>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light text-uppercase fs-7 text-muted">
+                    <tr>
+                        <th>Mã Code</th>
+                        <th>Số tiền giảm</th>
+                        <th>Đơn tối thiểu</th>
+                        <th>Hạn sử dụng</th>
+                        <th class="text-center">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td><span class="badge bg-danger fs-6">@item.Code</span></td>
+                                <td class="fw-bold text-success">@item.DiscountAmount.ToString("N0") đ</td>
+                                <td>@item.MinOrderAmount.ToString("N0") đ</td>
+                                <td>
+                                    @if (item.ExpiryDate.HasValue)
+                                    {
+                                        if (item.ExpiryDate.Value < DateTime.Now)
+                                        {
+                                            <span class="badge bg-secondary">Hết hạn (@item.ExpiryDate.Value.ToString("dd/MM/yyyy HH:mm"))</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-dark fw-semibold">@item.ExpiryDate.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success bg-opacity-10 text-success">Vô thời hạn</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <form asp-action="DeletePromotion" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold" onclick="return confirm('Bạn có chắc chắn muốn xóa mã này?')">Xóa</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">Chưa có mã khuyến mãi nào được tạo.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

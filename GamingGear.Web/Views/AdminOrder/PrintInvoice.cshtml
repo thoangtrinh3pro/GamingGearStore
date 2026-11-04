@@ -1,0 +1,130 @@
+﻿@model GamingGear.Domain.Entities.Order
+@{
+    Layout = null; // Không dùng layout chung để bản in sạch sẽ tuyệt đối
+    ViewData["Title"] = $"Hóa đơn bán hàng #{Model.Id}";
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <title>Hóa đơn mua hàng #@Model.Id - Ambition Karma Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            background: #fff;
+        }
+
+        .invoice-box {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 30px;
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+        }
+
+        /* ⚡ Dùng @@media để Razor phân biệt với cú pháp lệnh C# */
+        @@media print {
+            body {
+                background: none;
+            }
+
+            .invoice-box {
+                border: none;
+                box-shadow: none;
+                padding: 0;
+                margin: 0;
+                max-width: 100%;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body onload="window.print()">
+    <div class="invoice-box">
+        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+            <div>
+                <h3 class="fw-bold text-primary m-0">AMBITION KARMA SHOP ⚡</h3>
+                <p class="text-muted small m-0">Hệ thống phân phối thiết bị Gaming chính hãng</p>
+            </div>
+            <div class="text-end">
+                <h5 class="fw-bold text-dark m-0">HÓA ĐƠN BÁN HÀNG</h5>
+                <p class="text-muted small m-0">Mã đơn: <strong>#@Model.Id</strong></p>
+                <p class="text-muted small m-0">Ngày đặt: @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <h6 class="fw-bold text-dark mb-2">📋 Thông tin khách hàng nhận:</h6>
+            <p class="mb-1"><strong>Họ tên:</strong> @Model.FullName</p>
+            <p class="mb-1"><strong>Số điện thoại:</strong> @Model.PhoneNumber</p>
+            <p class="mb-1"><strong>Địa chỉ giao:</strong> @Model.ShippingAddress</p>
+            <p class="mb-0"><strong>Phương thức thanh toán:</strong> <span class="badge bg-secondary">@Model.PaymentMethod</span></p>
+        </div>
+
+        <table class="table table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Sản phẩm</th>
+                    <th class="text-center">Đơn giá</th>
+                    <th class="text-center">SL</th>
+                    <th class="text-end">Thành tiền</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.OrderDetails != null)
+                {
+                    foreach (var item in Model.OrderDetails)
+                    {
+                        <tr>
+                            <td>@(item.Product?.Name ?? $"Sản phẩm #{item.ProductId}")</td>
+                            <td class="text-center">@item.UnitPrice.ToString("N0") đ</td>
+                            <td class="text-center">@item.Quantity</td>
+                            <td class="text-end fw-bold text-danger">@((item.UnitPrice * item.Quantity).ToString("N0")) đ</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+
+        <div class="row justify-content-end">
+            <div class="col-md-6">
+                <table class="table table-sm borderless">
+                    <tr>
+                        <td>Mã giảm giá sử dụng:</td>
+                        <td class="text-end text-success fw-bold">@(string.IsNullOrEmpty(Model.CouponCode) ? "Không" : Model.CouponCode)</td>
+                    </tr>
+                    <tr>
+                        <td>Số tiền giảm (Voucher):</td>
+                        <td class="text-end text-success">-@Model.DiscountAmount.ToString("N0") đ</td>
+                    </tr>
+                    <tr>
+                        <td>Phí vận chuyển:</td>
+                        <td class="text-end">@(Model.ShippingFee == 0 ? "Miễn phí (0 đ)" : $"{Model.ShippingFee:N0} đ")</td>
+                    </tr>
+                    <tr class="border-top fw-bold fs-5">
+                        <td>Tổng thanh toán:</td>
+                        <td class="text-end text-danger">@Model.TotalAmount.ToString("N0") đ</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="text-center mt-5 text-muted small border-top pt-3">
+            <p class="mb-1">Cảm ơn quý khách đã mua sắm tại Ambition Karma Shop!</p>
+            <p class="mb-0">Hỗ trợ bảo hành & đổi trả liên hệ Zalo / SĐT: 0373900143</p>
+        </div>
+
+        <div class="text-center mt-4 no-print">
+            <button onclick="window.print()" class="btn btn-primary rounded-pill px-4 fw-bold">🖨️ In lại hóa đơn</button>
+            <a href="javascript:window.close();" class="btn btn-outline-secondary rounded-pill px-4 ms-2">Đóng cửa sổ</a>
+        </div>
+    </div>
+</body>
+</html>
